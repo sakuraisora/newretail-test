@@ -1,14 +1,18 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useReducer } from "react";
 import { Button } from "./components/ui/button";
 import { Input } from "./components/ui/input";
-import { CategoryFilter } from "./components/CategoryFilter";
-import { PriceRangeFilter } from "./components/PriceRangeFilter";
-import { StockFilter } from "./components/StockFilter";
-import { SortControl } from "./components/SortControl";
-import { ItemTable } from "./components/ItemTable";
-import { ItemCards } from "./components/ItemCards";
-import { Pagination } from "./components/Pagination";
+import { SortControl } from "./components/filters/SortControl";
+import { Pagination } from "./components/filters/Pagination";
 import type { Item } from "./interface/item.interface";
+import { CategoryFilter } from "./components/filters/CategoryFilter";
+import { PriceRangeFilter } from "./components/filters/PriceRangeFilter";
+import { StockFilter } from "./components/filters/StockFilter";
+import { ItemTable } from "./components/items/ItemTable";
+import { ItemCards } from "./components/items/ItemCards";
+import {
+  filterReducer,
+  initialFilterState,
+} from "./lib/filterReducer";
 
 /**
  * 創建一個複雜篩選功能，用於篩選一組物品（如商品清單）。清單資料為靜態 JSON，包含屬性：name（名稱）、category（類別）、price（價格）、inStock（是否有庫存）。
@@ -46,19 +50,6 @@ import type { Item } from "./interface/item.interface";
  * [價格]      $100
  * [庫存]      有庫存
  * */
-
-// Define the filter state interface
-interface FilterState {
-  search: string;
-  categories: string[];
-  minPrice: number | "";
-  maxPrice: number | "";
-  inStockOnly: boolean;
-  sortBy: "priceAsc" | "priceDesc" | "";
-  currentPage: number;
-  itemsPerPage: number;
-}
-
 function App() {
   const [items, setItems] = useState<Item[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -66,17 +57,8 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 769);
 
-  // Initialize filter state
-  const [filters, setFilters] = useState<FilterState>({
-    search: "",
-    categories: [],
-    minPrice: "",
-    maxPrice: "",
-    inStockOnly: false,
-    sortBy: "",
-    currentPage: 1,
-    itemsPerPage: 10,
-  });
+  // Initialize filter state using useReducer
+  const [filters, dispatch] = useReducer(filterReducer, initialFilterState);
 
   // Load data from JSON file
   useEffect(() => {
@@ -103,7 +85,7 @@ function App() {
 
     // Add event listener for window resize
     const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
+      setIsMobile(window.innerWidth < 769);
     };
 
     window.addEventListener("resize", handleResize);
@@ -163,72 +145,48 @@ function App() {
 
   // Handle search button click
   const handleSearchClick = () => {
-    setFilters({
-      ...filters,
-      search: searchQuery,
-      currentPage: 1,
-    });
+    dispatch({ type: "SET_SEARCH", payload: searchQuery });
   };
 
   // Handle category filter change
   const handleCategoryChange = (selectedCategories: string[]) => {
-    setFilters({
-      ...filters,
-      categories: selectedCategories,
-      currentPage: 1,
-    });
+    dispatch({ type: "SET_CATEGORIES", payload: selectedCategories });
   };
 
   // Handle price range filter change
   const handleMinPriceChange = (value: number | "") => {
-    setFilters({
-      ...filters,
-      minPrice: value,
-      currentPage: 1,
-    });
+    dispatch({ type: "SET_MIN_PRICE", payload: value });
   };
 
   const handleMaxPriceChange = (value: number | "") => {
-    setFilters({
-      ...filters,
-      maxPrice: value,
-      currentPage: 1,
-    });
+    dispatch({ type: "SET_MAX_PRICE", payload: value });
   };
 
   // Handle stock filter change
   const handleStockFilterChange = (inStockOnly: boolean) => {
-    setFilters({
-      ...filters,
-      inStockOnly,
-      currentPage: 1,
-    });
+    dispatch({ type: "SET_IN_STOCK_ONLY", payload: inStockOnly });
   };
 
   // Handle sort change
   const handleSortChange = (sortBy: "priceAsc" | "priceDesc" | "") => {
-    setFilters({
-      ...filters,
-      sortBy,
-      currentPage: 1,
-    });
+    dispatch({ type: "SET_SORT_BY", payload: sortBy });
   };
 
   // Handle pagination
   const handlePageChange = (page: number) => {
-    setFilters({
-      ...filters,
-      currentPage: page,
-    });
+    dispatch({ type: "SET_CURRENT_PAGE", payload: page });
   };
 
   // Handle items per page change
   const handleItemsPerPageChange = (itemsPerPage: number) => {
-    setFilters({
-      ...filters,
-      itemsPerPage,
-      currentPage: 1,
-    });
+    dispatch({ type: "SET_ITEMS_PER_PAGE", payload: itemsPerPage });
+  };
+
+  // Handle reset all filters
+  const handleResetFilters = () => {
+    dispatch({ type: "RESET_FILTERS" });
+    // Also reset the search query input
+    setSearchQuery("");
   };
 
   // Get paginated items
@@ -259,6 +217,9 @@ function App() {
         <Button variant="outline" onClick={handleSearchClick}>
           搜尋
         </Button>
+        <Button variant="outline" onClick={handleResetFilters}>
+          重置
+        </Button>
       </div>
       {/* Filter controls */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
@@ -267,6 +228,7 @@ function App() {
           categories={categories}
           selectedCategories={filters.categories}
           onChange={handleCategoryChange}
+          dispatch={dispatch}
         />
         {/* Apply price range */}
         <PriceRangeFilter
@@ -274,14 +236,20 @@ function App() {
           maxPrice={filters.maxPrice}
           onMinPriceChange={handleMinPriceChange}
           onMaxPriceChange={handleMaxPriceChange}
+          dispatch={dispatch}
         />
         {/* Apply stock status */}
         <StockFilter
           inStockOnly={filters.inStockOnly}
           onChange={handleStockFilterChange}
+          dispatch={dispatch}
         />
         {/* Apply sort */}
-        <SortControl sortBy={filters.sortBy} onChange={handleSortChange} />
+        <SortControl
+          sortBy={filters.sortBy}
+          onChange={handleSortChange}
+          dispatch={dispatch}
+        />
       </div>
       {/* Desktop */}
       {!isMobile && <ItemTable items={getPaginatedItems()} />}
@@ -294,6 +262,7 @@ function App() {
         itemsPerPage={filters.itemsPerPage}
         onPageChange={handlePageChange}
         onItemsPerPageChange={handleItemsPerPageChange}
+        dispatch={dispatch}
       />
     </div>
   );

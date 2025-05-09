@@ -1,4 +1,3 @@
-// Define the filter state interface
 export interface FilterState {
   search: string;
   categories: string[];
@@ -10,7 +9,6 @@ export interface FilterState {
   itemsPerPage: number;
 }
 
-// Define action types
 export type FilterAction =
   | { type: "SET_SEARCH"; payload: string }
   | { type: "SET_CATEGORIES"; payload: string[] }
@@ -22,7 +20,6 @@ export type FilterAction =
   | { type: "SET_ITEMS_PER_PAGE"; payload: number }
   | { type: "RESET_FILTERS" };
 
-// Initial state
 export const initialFilterState: FilterState = {
   search: "",
   categories: [],
@@ -34,7 +31,12 @@ export const initialFilterState: FilterState = {
   itemsPerPage: 10,
 };
 
-// Reducer function
+/**
+ * Search filter reducer
+ * @param state FilterState
+ * @param action FilterAction
+ * @returns FilterState
+ */
 export function filterReducer(
   state: FilterState,
   action: FilterAction,
@@ -44,7 +46,8 @@ export function filterReducer(
       return {
         ...state,
         search: action.payload,
-        currentPage: 1, // Reset to first page on search
+        // Reset to first page on search
+        currentPage: 1,
       };
     case "SET_CATEGORIES":
       return {
@@ -85,7 +88,8 @@ export function filterReducer(
       return {
         ...state,
         itemsPerPage: action.payload,
-        currentPage: 1, // Reset to first page when changing items per page
+        // Reset to first page when changing items per page
+        currentPage: 1,
       };
     case "RESET_FILTERS":
       return {

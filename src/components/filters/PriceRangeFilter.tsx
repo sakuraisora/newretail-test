@@ -1,11 +1,13 @@
-import React from "react";
-import { Input } from "./ui/input";
+import { type Dispatch } from "react";
+import { Input } from "../ui/input";
+import type { FilterAction } from "@/lib/filterReducer";
 
 interface PriceRangeFilterProps {
   minPrice: number | "";
   maxPrice: number | "";
   onMinPriceChange: (value: number | "") => void;
   onMaxPriceChange: (value: number | "") => void;
+  dispatch?: Dispatch<FilterAction>;
 }
 
 export function PriceRangeFilter({
@@ -13,15 +15,26 @@ export function PriceRangeFilter({
   maxPrice,
   onMinPriceChange,
   onMaxPriceChange,
+  dispatch,
 }: PriceRangeFilterProps) {
   const handleMinPriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value === "" ? "" : Number(e.target.value);
-    onMinPriceChange(value);
+
+    if (dispatch) {
+      dispatch({ type: "SET_MIN_PRICE", payload: value });
+    } else {
+      onMinPriceChange(value);
+    }
   };
 
   const handleMaxPriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value === "" ? "" : Number(e.target.value);
-    onMaxPriceChange(value);
+
+    if (dispatch) {
+      dispatch({ type: "SET_MAX_PRICE", payload: value });
+    } else {
+      onMaxPriceChange(value);
+    }
   };
 
   return (

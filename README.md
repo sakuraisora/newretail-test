@@ -21,7 +21,7 @@ A React + TypeScript application that demonstrates a responsive product catalog 
 - React 19 with TypeScript
 - Vite for build tooling
 - TailwindCSS for styling
-- Custom UI components
+- Shad/cn UI components
 
 ## Getting Started
 
@@ -33,12 +33,14 @@ A React + TypeScript application that demonstrates a responsive product catalog 
 ### Installation
 
 1. Clone the repository
+
 ```bash
-git clone [<repository-url>](https://github.com/sakuraisora/newretail-test.git)
+git clone https://github.com/sakuraisora/newretail-test.git
 cd newretail-test
 ```
 
 2. Install dependencies
+
 ```bash
 npm install
 # or
@@ -46,6 +48,7 @@ yarn
 ```
 
 3. Start the development server
+
 ```bash
 npm run dev
 # or
@@ -70,17 +73,19 @@ newretail-test/
 │   └── items.json              # 10,000 product items data
 ├── src/
 │   ├── components/             # React components
-│   │   ├── ui/                 # Reusable UI components
+│   │   ├── ui/                 # Reusable Shadcn UI components
 │   │   │   ├── button.tsx      # Button component
 │   │   │   ├── input.tsx       # Input component
 │   │   │   └── table.tsx       # Table component
-│   │   ├── CategoryFilter.tsx  # Category filter component
-│   │   ├── ItemCards.tsx       # Mobile product card view
-│   │   ├── ItemTable.tsx       # Desktop product table view
-│   │   ├── Pagination.tsx      # Pagination controls
-│   │   ├── PriceRangeFilter.tsx # Price range filter
-│   │   ├── SortControl.tsx     # Sort options component
-│   │   └── StockFilter.tsx     # Stock filter component
+│   │   ├── filters/            # Filter-related components
+│   │   │   ├── CategoryFilter.tsx  # Category filter component
+│   │   │   ├── PriceRangeFilter.tsx # Price range filter
+│   │   │   ├── SortControl.tsx     # Sort options component
+│   │   │   ├── StockFilter.tsx     # Stock filter component
+│   │   │   └── Pagination.tsx      # Pagination controls
+│   │   └── items/              # Item display components
+│   │       ├── ItemCards.tsx   # Mobile product card view
+│   │       └── ItemTable.tsx   # Desktop product table view
 │   ├── interface/              # TypeScript interfaces
 │   │   └── item.interface.ts   # Item data interface
 │   ├── lib/                    # Utility functions and business logic
@@ -103,7 +108,26 @@ newretail-test/
 ## Performance Considerations
 
 This application demonstrates efficient handling of large datasets through:
+
 - Pagination for limiting rendered items
-- Memoization of filtered results
+- Memoization of filtered results with useMemo
+- Feature-based folder structure for better code organization
 - Responsive design for various screen sizes
-- Optimized rendering with React memo
+- Optimized rendering with React.memo for list components
+- State management with useReducer for improved performance and predictability
+
+## State Management
+
+The filter state is managed through:
+
+- A central `filterReducer.ts` that defines all possible actions and state updates
+- Components that dispatch actions directly to the reducer
+- Atomic state updates that maintain consistency across filters
+
+It provides several benefits:
+
+- **Predictable State Updates**: All filter changes follow a strict reducer pattern
+- **Improved Performance**: Reduces unnecessary renders with a single state update
+- **Centralized Logic**: Filter-related logic is consolidated in the reducer
+- **Scalable Architecture**: Easy to add new filter types without modifying existing components
+- **Debugging**: State transitions are explicit and easier to track

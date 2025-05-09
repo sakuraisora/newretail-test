@@ -1,21 +1,31 @@
-import { Input } from "./ui/input";
+import type { FilterAction } from "@/lib/filterReducer";
+import { Input } from "../ui/input";
+import type { Dispatch } from "react";
 
 interface CategoryFilterProps {
   categories: string[];
   selectedCategories: string[];
   onChange: (categories: string[]) => void;
+  dispatch?: Dispatch<FilterAction>;
 }
 
 export function CategoryFilter({
   categories,
   selectedCategories,
   onChange,
+  dispatch,
 }: CategoryFilterProps) {
   const handleCategoryChange = (category: string) => {
-    if (selectedCategories.includes(category)) {
-      onChange(selectedCategories.filter((c) => c !== category));
+    const newCategories = selectedCategories.includes(category)
+      ? selectedCategories.filter((c) => c !== category)
+      : [...selectedCategories, category];
+
+    // If dispatch is provided, use it directly
+    if (dispatch) {
+      dispatch({ type: "SET_CATEGORIES", payload: newCategories });
     } else {
-      onChange([...selectedCategories, category]);
+      // Otherwise fall back to the onChange prop for backward compatibility
+      onChange(newCategories);
     }
   };
 
